@@ -57,9 +57,9 @@ El panel, la API y el overlay se sirven desde el mismo origen HTTPS. El [Dockerf
 
 En **Dashboard → Configuración → URL base del proyecto**, pulsa el ojo para editar la dirección que usarán los enlaces de directo y pruebas. Guarda un origen que ya sirva esta instancia, como `https://vgc.example.org`. El valor se guarda por cuenta en SQLite y se puede volver a cambiar desde el panel. **Usar URL del servidor** recupera `PUBLIC_ORIGIN`, que sigue siendo el origen de acceso al panel configurado en el despliegue.
 
-Puedes guardar el código en GitHub y publicar en GitHub Pages una portada que enlace a la aplicación. Las consultas periódicas, el inicio de sesión, SQLite y las actualizaciones a OBS requieren la instancia Node.js. La URL de la fuente de navegador la genera esa instancia. Alojar el panel en Pages y la API en otro dominio requeriría adaptar las rutas y la autenticación entre orígenes. [Documentación de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
+Las consultas periódicas, el inicio de sesión, SQLite y las actualizaciones a OBS requieren la instancia Node.js. Sirve el login y el panel desde ese origen para que la sesión y las fuentes de OBS funcionen correctamente. [Documentación de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
 
-La portada está en [`docs/`](docs/index.html). Para publicarla, configura **Settings → Pages → Deploy from a branch → main → /docs**. La carpeta contiene solo la portada estática. Cuando tengas la URL HTTPS del servidor, actualiza la portada para enlazar al panel.
+GitHub Pages publica la [pantalla de acceso](docs/index.html) desde `main:/docs`. El campo de código permanece desactivado hasta publicar el servidor HTTPS. Entonces, dirige esa entrada a la URL raíz del servidor, donde se valida el código.
 
 | Variable | Configuración |
 | --- | --- |

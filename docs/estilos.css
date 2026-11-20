@@ -1,67 +1,49 @@
 :root {
   color-scheme: dark;
-  font-family: system-ui, sans-serif;
-  line-height: 1.55;
-  color: #f5f2ff;
-  background: #141125;
-  --text-muted: #c5c5e2;
-  --accent: #a8d5ff;
-  --rule: #4b4766;
+  font: 15px/1.55 "Segoe UI Variable", "Segoe UI", sans-serif;
+  color: #f5f6ff;
+  background: #111027;
+  --surface: #1f203b;
+  --line: #44466c;
+  --muted: #c0c4df;
+  --accent: #83c8ff;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; }
 
-main {
-  width: min(100% - 3rem, 65rem);
-  margin-inline: auto;
-}
-
-header {
-  padding-block: clamp(3.5rem, 10vw, 8rem) clamp(2.25rem, 5vw, 4rem);
-  border-bottom: 1px solid var(--rule);
-}
-
-h1, h2, p { margin: 0; }
-
-h1 {
-  font-size: clamp(2.35rem, 9vw, 6rem);
-  font-weight: 780;
-  line-height: .98;
-  letter-spacing: -.04em;
-}
-
-.intro {
-  max-width: 39ch;
-  margin-block-start: 1.5rem;
-  font-size: clamp(1.125rem, 2.5vw, 1.55rem);
-  color: var(--text-muted);
-}
-
-.availability {
-  margin-block-start: 1.1rem;
-  color: var(--accent);
-}
-
-section { padding-block: clamp(2rem, 5vw, 3.5rem); }
-h2 { font-size: clamp(1.45rem, 3vw, 2.1rem); line-height: 1.2; }
-
-ol {
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 1rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-  gap: 1.35rem 2rem;
-  margin: 1.4rem 0 0;
-  padding-inline-start: 1.4rem;
-  color: var(--text-muted);
+  place-items: center;
+  background: linear-gradient(120deg, #220a3a, #263964 82%);
 }
 
-li { padding-inline-start: .35rem; }
-li::marker { color: var(--accent); font-weight: 700; }
-li strong { display: block; margin-block-end: .2rem; color: #f5f2ff; }
-
-footer {
-  padding-block: 1.1rem 2.2rem;
-  border-top: 1px solid var(--rule);
-  color: var(--text-muted);
-  font-size: .875rem;
+.sign-in {
+  width: min(100%, 42rem);
+  padding: clamp(1.5rem, 6vw, 3.6rem);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #111027;
 }
+
+.brand { display: flex; align-items: center; gap: .7rem; }
+.brand img { flex: none; border-radius: 8px; }
+h1 { margin: 0; font-size: clamp(1.55rem, 4.2vw, 2.55rem); line-height: 1.1; letter-spacing: -.035em; }
+.login { margin-block: 1.6rem; }
+label { display: block; margin-bottom: .24rem; font-size: .88rem; font-weight: 600; }
+
+input, button {
+  padding: .48rem .65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font: inherit;
+  color: var(--muted);
+}
+
+input { width: 100%; }
+button { display: block; margin: .8rem auto; padding-inline: .8rem; font-weight: 600; }
+#access-status { margin: .8rem 0 0; text-align: center; color: var(--accent); }
+.details { margin: 0; padding-top: .8rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
