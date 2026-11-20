@@ -2,7 +2,7 @@ const backend = document.querySelector<HTMLMetaElement>('meta[name="app-origin"]
 export const hostedOnPages = Boolean(backend);
 const sessionKey = 'koi-vgc-results:session';
 
-export const loginPage = hostedOnPages ? './' : '/';
+export const loginPage = hostedOnPages ? './index.html' : '/';
 export const panelPage = hostedOnPages ? './panel.html' : '/panel';
 
 export function setSession(token?: string) {
