@@ -26,9 +26,13 @@ if (!codes || typeof codes !== 'object' || Array.isArray(codes)
   throw new Error('ACCESS_CODES debe contener cuentas únicas y códigos aleatorios distintos de al menos 32 caracteres.');
 }
 const dir = path.resolve(process.env.DATA_DIR ?? path.join(root, 'data'));
+const pagesOrigin = process.env.PAGES_ORIGIN;
+if (pagesOrigin && (new URL(pagesOrigin).origin !== pagesOrigin || !pagesOrigin.startsWith('https://'))) {
+  throw new Error('PAGES_ORIGIN debe ser un origen HTTPS sin ruta ni parámetros.');
+}
 mkdirSync(dir, { recursive: true, mode: 0o700 });
 const service = createService({ origin: origin.origin, dataPath: path.join(dir, 'results.sqlite'), codes: codes as Record<string, string>, root,
-  mediaRoot: process.env.MEDIA_DIR ? path.resolve(process.env.MEDIA_DIR) : undefined });
+  mediaRoot: process.env.MEDIA_DIR ? path.resolve(process.env.MEDIA_DIR) : undefined, pagesOrigin });
 const server = service.app.listen(port, host, () => {
   console.log(`Panel disponible en ${origin.origin}`);
   if (!production && !process.env.ACCESS_CODES) console.log(`Código de acceso temporal para este arranque: ${(codes as Record<string, string>).local}`);

@@ -91,7 +91,8 @@ test('panel privado, consultas compartidas, SSE aislado y revocación persistent
   const address = http.address();
   assert.ok(address && typeof address !== 'string');
   const origin = `http://127.0.0.1:${address.port}`;
-  const options = { origin, root: process.cwd(), mediaRoot, dataPath: path.join(folder, 'tests.sqlite'), codes, load: reading, intervalMs: 100 };
+  const pagesOrigin = 'https://fibanezv.github.io';
+  const options = { origin, pagesOrigin, root: process.cwd(), mediaRoot, dataPath: path.join(folder, 'tests.sqlite'), codes, load: reading, intervalMs: 100 };
   let service = createService(options);
   http.on('request', service.app);
   const get = (route: string, session = '') => fetch(new URL(route, origin), { headers: { cookie: session } });
@@ -121,6 +122,32 @@ test('panel privado, consultas compartidas, SSE aislado y revocación persistent
     assert.equal((await post('/api/login', { code: codes.streamer }, '', 'https://example.org')).status, 403);
     const session = await access(codes.streamer);
     const other = await access(codes.other);
+    const preflight = await fetch(origin + '/api/panel/scoreboard', { method: 'OPTIONS', headers: {
+      Origin: pagesOrigin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'authorization,content-type',
+    } });
+    assert.equal(preflight.status, 204);
+    assert.equal(preflight.headers.get('access-control-allow-origin'), pagesOrigin);
+    assert.match(preflight.headers.get('access-control-allow-headers')!, /Authorization/);
+    const pagesLogin = await post('/api/login', { code: codes.streamer }, '', pagesOrigin);
+    assert.equal(pagesLogin.status, 200);
+    assert.equal(pagesLogin.headers.get('set-cookie'), null);
+    const token = (await pagesLogin.json()).token;
+    const pagesHeaders = { origin: pagesOrigin, authorization: `Bearer ${token}` };
+    const fromPages = (route: string, method = 'GET') => fetch(origin + route, { method, headers: pagesHeaders });
+    const pagesPanel = await fromPages('/api/panel');
+    assert.equal(pagesPanel.status, 200);
+    const { url: pagesOverlay } = await pagesPanel.json();
+    const spriteHeaders = await fromPages('/api/panel/media/pokemon/Garchomp_HOME.webm', 'HEAD');
+    assert.equal(spriteHeaders.headers.get('content-type'), 'video/webm');
+    const pagesEvents = await fromPages(new URL(pagesOverlay).pathname + '/events');
+    assert.equal(pagesEvents.headers.get('access-control-allow-origin'), pagesOrigin);
+    assert.match(pagesEvents.headers.get('content-type')!, /text\/event-stream/);
+    await pagesEvents.body?.cancel();
+    const fromUntrustedOrigin = await fetch(origin + '/api/panel', { headers: { ...pagesHeaders, origin: 'https://otro.example' } });
+    assert.equal(fromUntrustedOrigin.status, 401);
+    assert.equal(fromUntrustedOrigin.headers.get('access-control-allow-origin'), null);
+    assert.equal((await fromPages('/api/logout', 'POST')).status, 204);
+    assert.equal((await fromPages('/api/panel')).status, 401);
     assert.equal((await get('/api/panel/media')).status, 401);
     assert.equal((await get('/api/panel/live-view')).status, 401);
     assert.equal((await get('/api/panel/live-view/source')).status, 401);

@@ -9,6 +9,7 @@ import { defaultSoundMix, defaultSounds, menuSoundEvent, menuSoundTypes, noticeN
 import type { NoticeType, SoundChoice, SoundEvent, SoundMix, Tone } from './sounds.ts';
 import type { TrialPreset } from './trials.ts';
 import { spriteElement } from './sprite.ts';
+import { hostedOnPages, loginPage, panelPage, previewPage, serviceFetch, setAsset, setSession } from './browser-service.ts';
 
 const el = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const input = (id: string) => el<HTMLInputElement>(id);
@@ -28,11 +29,12 @@ const generalControls = [
   ['marginX', 'margin-x'], ['marginY', 'margin-y'],
 ] as const;
 async function api<T>(path: string, body?: unknown): Promise<T> {
-  const response = await fetch(path, body === undefined ? {} : {
+  const response = await serviceFetch(path, body === undefined ? {} : {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   });
-  if (response.status === 401 && location.pathname === '/panel') {
-    location.replace('/');
+  if (response.status === 401 && document.getElementById('configuration')) {
+    setSession();
+    location.replace(loginPage);
     throw new Error('La sesión ha caducado.');
   }
   if (!response.ok) {
@@ -47,8 +49,10 @@ function bindLogin() {
   el('login').addEventListener('submit', async event => {
     event.preventDefault();
     try {
-      await api('/api/login', { code: input('code').value });
-      location.assign('/panel');
+      const session = await api<{ token: string } | undefined>('/api/login', { code: input('code').value });
+      if (hostedOnPages && !session?.token) throw new Error('El servidor todavía no permite iniciar sesión desde GitHub Pages.');
+      setSession(session?.token);
+      location.assign(panelPage);
     } catch (error) { el('login-error').textContent = (error as Error).message; }
   });
 }
@@ -363,7 +367,7 @@ function bindPanel() {
     const context = panelAudio;
     await context.resume();
     if (choice.startsWith('tone:')) return () => playTone(context, choice.slice(5) as Tone, volume);
-    const response = await fetch('/api/panel/media/sounds/' + encodeURIComponent(choice.slice(5)));
+    const response = await serviceFetch('/api/panel/media/sounds/' + encodeURIComponent(choice.slice(5)));
     if (!response.ok) throw new Error();
     const buffer = await context.decodeAudioData(await response.arrayBuffer());
     return () => {
@@ -395,9 +399,9 @@ function bindPanel() {
       soundPreviewCue = { id, play, volume };
       el('sound-scene-panel').hidden = false;
       el('sound-preview-status').textContent = 'Cargando la vista previa…';
-      el<HTMLIFrameElement>('sound-scene').src = '/api/panel/sprite-preview?' + new URLSearchParams({
+      el<HTMLIFrameElement>('sound-scene').src = previewPage('sprite-preview', new URLSearchParams({
         soundPreview: activeSoundEvent(), cue: id, ...(draft && { appearance: JSON.stringify(draft) }),
-      });
+      }));
       setTimeout(() => {
         if (soundPreviewCue?.id !== id) return;
         soundPreviewCue = undefined;
@@ -581,14 +585,14 @@ function bindPanel() {
     el('dashboard-stage').hidden = !hasLive && !dashboardTest;
     if (dashboardTest) return;
     if (!hasLive) frame.removeAttribute('src');
-    else if (dashboardLiveUrl !== state.url) frame.src = '/api/panel/live-view';
+    else if (dashboardLiveUrl !== state.url) frame.src = previewPage('live-view');
     dashboardLiveUrl = state.url;
   }
   function testDashboardScene(scene: NonNullable<typeof dashboardTest>) {
     dashboardTest = scene;
     dashboardLiveUrl = '';
     const query = new URLSearchParams({ soundPreview: scene, replay: String(++dashboardReplay) });
-    el<HTMLIFrameElement>('dashboard-scene').src = '/api/panel/sprite-preview?' + query;
+    el<HTMLIFrameElement>('dashboard-scene').src = previewPage('sprite-preview', query);
     renderDashboardMonitor();
   }
   button('dashboard-alert').addEventListener('click', () => testDashboardScene(select('dashboard-scenario').value as Scenario));
@@ -876,9 +880,11 @@ function bindPanel() {
       .map(type => noticeNames[type]).join(', ') || 'Sin asignar';
   }
   function showSpriteScene(kind: 'team' | 'gif', query: Record<string, string>) {
-    const url = '/api/panel/sprite-preview?' + new URLSearchParams(query);
+    const url = previewPage('sprite-preview', new URLSearchParams(query));
     el<HTMLIFrameElement>(`${kind}-scene`).src = url;
-    el<HTMLAnchorElement>(`${kind}-expand`).href = url;
+    const expand = el<HTMLAnchorElement>(`${kind}-expand`);
+    expand.href = url;
+    if (hostedOnPages) expand.removeAttribute('target');
   }
   function renderTeamPreview(next: PanelState) {
     const players = next.config?.players ?? [];
@@ -997,8 +1003,8 @@ function bindPanel() {
       status.hidden = true;
     }, { once: true });
     image.addEventListener('error', () => { status.textContent = 'No se pudo abrir este GIF.'; }, { once: true });
-    image.src = url;
-    void fetch(url, { method: 'HEAD' }).then(response => {
+    setAsset(image, url);
+    void serviceFetch(url, { method: 'HEAD' }).then(response => {
       const length = Number(response.headers.get('Content-Length'));
       if (!response.ok || !length) return;
       const unit = length >= 1_000_000 ? 'megabyte' : 'kilobyte';
@@ -1118,7 +1124,7 @@ function bindPanel() {
       const next = await call<PanelState>();
       if (before === revision && !busy) render(next, first);
     } catch {
-      if (location.pathname === '/panel') message('No se pudo actualizar el panel. Se volverá a intentar.', true);
+      if (document.getElementById('configuration')) message('No se pudo actualizar el panel. Se volverá a intentar.', true);
     }
   }
   function clearSetup() {
@@ -1277,7 +1283,8 @@ function bindPanel() {
   }));
   button('logout').addEventListener('click', () => void run(async () => {
     await api('/api/logout', {});
-    location.assign('/');
+    setSession();
+    location.assign(loginPage);
   }));
   function renderOriginEditing() {
     button('save-project-origin').disabled = !state || busy || !originDirty || input('project-origin').type === 'password';

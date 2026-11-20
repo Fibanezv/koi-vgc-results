@@ -25,7 +25,7 @@ const linkPattern = /^[\w-]{43}$/;
 const isoNow = () => new Date().toISOString();
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : 'Error desconocido.';
 type Inspection = { setup: Setup; snapshot: Snapshot; at: number };
-export type Options = { origin: string; dataPath: string; codes: Record<string, string>; root: string; mediaRoot?: string; intervalMs?: number; load?: LoadStandings };
+export type Options = { origin: string; dataPath: string; codes: Record<string, string>; root: string; mediaRoot?: string; intervalMs?: number; load?: LoadStandings; pagesOrigin?: string };
 
 export function createService(options: Options) {
   const origin = new URL(options.origin).origin;
@@ -51,8 +51,14 @@ export function createService(options: Options) {
   function cookie(req: Request) {
     return req.headers.cookie?.split(';').map(piece => piece.trim()).find(piece => piece.startsWith('koi_session='))?.slice(12) ?? '';
   }
+  function isPagesRequest(req: Request) {
+    return Boolean(options.pagesOrigin && req.get('origin') === options.pagesOrigin);
+  }
+  function sessionToken(req: Request) {
+    return isPagesRequest(req) ? req.get('authorization')?.match(/^Bearer ([A-Za-z0-9_-]+)$/)?.[1] ?? '' : cookie(req);
+  }
   function operator(req: Request) {
-    const value = cookie(req);
+    const value = sessionToken(req);
     const session = linkPattern.test(value) ? store.session(value) : null;
     const code = session && byOwner.get(session.owner);
     return session && code?.toString('hex') === session.credential ? session.owner : null;
@@ -198,7 +204,20 @@ export function createService(options: Options) {
       'Content-Security-Policy': `default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors ${embeddable ? "'self'" : "'none'"}; form-action 'self'`,
     });
     if (secure) res.set('Strict-Transport-Security', 'max-age=15552000');
-    if (req.method === 'POST' && req.get('origin') !== origin) { res.sendStatus(403); return; }
+    const apiPath = /^\/api\/(?:login$|logout$|panel(?:\/|$))/.test(req.path);
+    const overlayPath = /^\/o\/[^/]+\//.test(req.path);
+    if (apiPath || overlayPath) res.vary('Origin');
+    const pages = isPagesRequest(req) && (apiPath || overlayPath);
+    if (pages) {
+      res.set('Access-Control-Allow-Origin', options.pagesOrigin!);
+      if (req.method === 'OPTIONS') {
+        res.set('Access-Control-Allow-Methods', apiPath ? 'GET, HEAD, POST' : 'GET, HEAD');
+        res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+        res.sendStatus(204);
+        return;
+      }
+    }
+    if (req.method === 'POST' && req.get('origin') !== origin && !(apiPath && pages)) { res.sendStatus(403); return; }
     next();
   });
   site.use(express.json({ limit: '12kb' }));
@@ -228,14 +247,16 @@ export function createService(options: Options) {
       return;
     }
     attempts.delete(key);
-    const prior = cookie(req);
+    const prior = sessionToken(req);
     if (linkPattern.test(prior)) store.logout(prior);
     const access = store.login(match[0], now + sessionLifetime, match[1].toString('hex'));
+    if (isPagesRequest(req)) { res.json({ token: access }); return; }
     res.cookie('koi_session', access, { secure, httpOnly: true, sameSite: 'strict', path: '/', maxAge: sessionLifetime }).sendStatus(204);
   });
   site.post('/api/logout', (req, res) => {
-    const value = cookie(req);
+    const value = sessionToken(req);
     if (linkPattern.test(value)) store.logout(value);
+    if (isPagesRequest(req)) { res.sendStatus(204); return; }
     res.clearCookie('koi_session', { secure, httpOnly: true, sameSite: 'strict', path: '/' }).sendStatus(204);
   });
 

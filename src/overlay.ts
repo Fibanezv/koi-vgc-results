@@ -9,6 +9,7 @@ import { defaultSoundMix, defaultSounds, isMenuSound, menuSoundEvent, noticeType
 import type { NoticeType, SoundChoice, SoundEvent, Tone } from './sounds.ts';
 import { pickNoticeGif } from './media-types.ts';
 import { spriteElement } from './sprite.ts';
+import { clearAsset, hostedOnPages, serviceFetch, serviceUrl, setAsset } from './browser-service.ts';
 
 const el = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const noticeView = el('notice');
@@ -42,9 +43,10 @@ let historyRequest: AbortController | undefined;
 const scoreMenu = el('score-menu');
 let overlayPath = location.pathname.startsWith('/o/') ? location.pathname.replace(/\/$/, '') : '';
 let previewPlayers: SpritePreview['players'] | undefined;
-const embeddedPreview = location.pathname === '/api/panel/sprite-preview';
-const liveMonitor = location.pathname === '/api/panel/live-view';
 const previewParams = new URLSearchParams(location.search);
+const view = hostedOnPages ? previewParams.get('view') : location.pathname.split('/').at(-1);
+const embeddedPreview = view === 'sprite-preview';
+const liveMonitor = view === 'live-view';
 const previewCue = embeddedPreview ? previewParams.get('cue') : null;
 function signalPreviewSound() {
   if (previewCue) window.parent.postMessage({ type: 'koi-sound-preview', cue: previewCue }, location.origin);
@@ -147,7 +149,7 @@ function renderMenu() {
   content.replaceChildren(text('p', 'Cargando rondas de PokéData…'));
   void (async () => {
     try {
-      const response = await fetch(`${overlayPath}/history/${card.selection.id}`, { signal: request.signal });
+      const response = await serviceFetch(`${overlayPath}/history/${card.selection.id}`, { signal: request.signal });
       if (!response.ok) throw new Error();
       const { matches } = await response.json() as { matches: Match[] };
       if (!request.signal.aborted) drawHistory(content, matches);
@@ -245,7 +247,7 @@ function render(next: OverlayState) {
           : card.sprite && overlayPath && `${overlayPath}/sprite/${card.selection.id}/${card.sprite}`;
         if (url) {
           const sprite = document.createElement('img');
-          sprite.src = url;
+          setAsset(sprite, url);
           sprite.alt = '';
           sprite.className = 'player-sprite player-avatar';
           portrait.append(sprite);
@@ -325,7 +327,7 @@ async function playOverlaySound(event: SoundEvent, isCurrent: () => boolean, sto
   try {
     if (choice.startsWith('tone:')) tone = choice.slice(5) as Tone;
     else if (overlayPath) {
-      const clip = new Audio(`${overlayPath}/media/sounds/${encodeURIComponent(choice.slice(5))}`);
+      const clip = new Audio(serviceUrl(`${overlayPath}/media/sounds/${encodeURIComponent(choice.slice(5))}`));
       storeClip(clip);
       clip.volume = volume / 100;
       try { await clip.play(); return; }
@@ -362,7 +364,7 @@ function writeNotice(next: Notice) {
   const files = type && state.gifs?.[type];
   if (!type || !files?.length || (!embeddedPreview && !overlayPath) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
     noticeGif.hidden = true;
-    noticeGif.removeAttribute('src');
+    clearAsset(noticeGif);
     return;
   }
   if (gifChoice?.id !== next.id) {
@@ -372,7 +374,7 @@ function writeNotice(next: Notice) {
   }
   if (!gifChoice.file || !files.includes(gifChoice.file)) {
     noticeGif.hidden = true;
-    noticeGif.removeAttribute('src');
+    clearAsset(noticeGif);
     return;
   }
   const directory = embeddedPreview ? '/api/panel/media/gifs' : `${overlayPath}/gifs/${type}`;
@@ -380,7 +382,7 @@ function writeNotice(next: Notice) {
   if (noticeGif.getAttribute('src') !== url) {
     noticeGif.dataset.loading = '';
     noticeGif.hidden = false;
-    noticeGif.src = url;
+    setAsset(noticeGif, url);
   }
 }
 
@@ -396,7 +398,7 @@ function stopNotices() {
   noticeView.hidden = true;
   syncScoreboard();
   noticeGif.hidden = true;
-  noticeGif.removeAttribute('src');
+  clearAsset(noticeGif);
 }
 
 const motionTransforms = {
@@ -494,7 +496,7 @@ function play() {
       currentNotice = undefined;
       noticeView.hidden = true;
       noticeGif.hidden = true;
-      noticeGif.removeAttribute('src');
+      clearAsset(noticeGif);
       if (!alertGapMs && pending.length) { play(); return; }
       syncScoreboard();
       noticeTimer = setTimeout(play, alertGapMs);
@@ -523,7 +525,7 @@ function receive(current: OverlayState, notices: Notice[]) {
 if (liveMonitor) {
   void (async () => {
     try {
-      const response = await fetch('/api/panel/live-view/source');
+      const response = await serviceFetch('/api/panel/live-view/source');
       if (!response.ok) throw new Error();
       const { path } = await response.json() as { path: string };
       overlayPath = path;
@@ -537,7 +539,7 @@ if (liveMonitor) {
   document.body.classList.add('sprite-preview-page');
   void (async () => {
     try {
-      const response = await fetch('/api/panel/sprite-preview/state' + location.search);
+      const response = await serviceFetch('/api/panel/sprite-preview/state' + location.search);
       if (!response.ok) throw new Error();
       const preview: SpritePreview = await response.json();
       overlayPath = preview.legacySource;
@@ -558,10 +560,10 @@ if (liveMonitor) {
       el('message').hidden = false;
     }
   })();
-} else connectOverlay(overlayPath);
+} else if (overlayPath) connectOverlay(overlayPath);
 
 function connectOverlay(path: string) {
-  const channel = new EventSource(path + '/events');
+  const channel = new EventSource(serviceUrl(path + '/events'));
   const linkedPreset = trialPresets.find(value => value === previewParams.get('ensayo'));
   let latestTrial: OverlayState | undefined;
   let trialTimer: ReturnType<typeof setTimeout> | undefined;

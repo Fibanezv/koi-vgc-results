@@ -57,18 +57,19 @@ El panel, la API y el overlay se sirven desde el mismo origen HTTPS. El [Dockerf
 
 En **Dashboard → Configuración → URL base del proyecto**, pulsa el ojo para editar la dirección que usarán los enlaces de directo y pruebas. Guarda un origen que ya sirva esta instancia, como `https://vgc.example.org`. El valor se guarda por cuenta en SQLite y se puede volver a cambiar desde el panel. **Usar URL del servidor** recupera `PUBLIC_ORIGIN`, que sigue siendo el origen de acceso al panel configurado en el despliegue.
 
-Las consultas periódicas, el inicio de sesión, SQLite y las actualizaciones a OBS requieren la instancia Node.js. Sirve el login y el panel desde ese origen para que la sesión y las fuentes de OBS funcionen correctamente. [Documentación de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
+GitHub Pages publica el login y el Dashboard compilados desde los mismos archivos que sirve la instancia Node.js. Desde Pages, el navegador consulta la API de Clouding. Clouding valida el código, guarda la configuración en SQLite, consulta PokéData y mantiene las fuentes HTTPS de OBS. [Documentación de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
 
-GitHub Pages publica la [pantalla de acceso](docs/index.html) desde `main:/docs`. El campo de código permanece desactivado hasta publicar el servidor HTTPS. Entonces, dirige esa entrada a la URL raíz del servidor, donde se valida el código.
+Para activar este modo, actualiza primero Clouding y añade `PAGES_ORIGIN=https://fibanezv.github.io` al `.env` del servidor. Reinicia la app con PM2. En GitHub, cambia la fuente de **Settings → Pages** a **GitHub Actions** y ejecuta **Publicar el panel en GitHub Pages**. La compilación usa por defecto el origen HTTPS de Clouding. Puedes cambiarlo con la variable del repositorio `PAGES_BACKEND_ORIGIN`. Conserva `ACCESS_CODES` en el servidor. [Publicar con GitHub Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
 
 | Variable | Configuración |
 | --- | --- |
 | `PUBLIC_ORIGIN` | Origen HTTPS canónico, sin ruta. Ejemplo `https://vgc.example.org`. |
+| `PAGES_ORIGIN` | Origen de Pages autorizado para usar la API desde el navegador. Es opcional y se indica sin la ruta del repositorio. |
 | `ACCESS_CODES` | Objeto JSON privado con una clave de operador por invitación y un código aleatorio distinto por operador. Cada código tiene al menos 32 caracteres URL-safe. |
 | `DATA_DIR` | Carpeta con escritura para el usuario del proceso. Monta un volumen persistente en `/data` para el contenedor y respáldalo según el proveedor. |
 | `PORT` y `HOST` | Puerto y dirección de escucha. El contenedor usa `8080` y `0.0.0.0` por defecto. En desarrollo se usa la interfaz de loopback. |
 
-Los códigos se generan con `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"` y se entregan por un canal privado. El panel canjea el código por una cookie de sesión. Cambiar el código de un operador e iniciar el servicio con la configuración nueva invalida sus sesiones anteriores. Los overlays usan enlaces revocables de solo lectura. Si necesitas acceso por correo o SSO, la integración con un proveedor de identidad sigue pendiente.
+Los códigos se generan con `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"` y se entregan por un canal privado. El acceso directo a Clouding usa una cookie de sesión. En Pages, el servidor devuelve una credencial de sesión que el navegador guarda durante la pestaña y elimina al cerrar sesión. Cambiar el código de un operador e iniciar el servicio con la configuración nueva invalida sus sesiones anteriores. Los overlays usan enlaces revocables de solo lectura.
 
 ## Primer push a GitHub
 

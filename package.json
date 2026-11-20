@@ -8,6 +8,7 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "build": "tsc --noEmit && esbuild src/main.ts --bundle --outfile=build/main.js --platform=node --packages=external && esbuild src/panel.ts src/overlay.ts --bundle --outdir=build --platform=browser",
+    "build:pages": "npm run build && node herramientas/build-pages.mjs",
     "start": "node --env-file-if-exists=.env build/main.js",
     "dev": "npm run build && npm start",
     "test": "esbuild tests/service.test.ts --bundle --outfile=build/service.test.cjs --platform=node --packages=external && node --disable-warning=ExperimentalWarning --test build/service.test.cjs"
