@@ -10,20 +10,29 @@
 </head>
 <body class="entry">
   <main class="sign-in">
-    <header>
+    <section class="entry-info" aria-labelledby="entry-title">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <h1>KOI Pokémon VGC Results</h1>
+        <img class="entry-logo" src="/koi-logo.jpg" width="60" height="60" alt="">
+        <h1 id="entry-title">KOI Pokémon<br>VGC Results</h1>
       </div>
-      <p>Resultados de Pokémon VGC en OBS.</p>
-    </header>
-    <form id="login">
-      <label for="code">Código de invitación</label>
-      <input id="code" name="code" type="password" autocomplete="current-password" minlength="32" maxlength="256" required>
-      <div class="inline login-actions"><button type="submit" class="primary">Abrir panel</button></div>
-      <p id="login-error" role="status"></p>
-    </form>
-    <p class="muted details-copy">Proyecto independiente. El panel usa un código privado y las fuentes de OBS tienen enlaces de solo lectura.</p>
+      <p>Sigue a tus jugadores de Pokémon VGC durante el torneo. El panel consulta PokéData y lleva los cruces y resultados a tu retransmisión en OBS.</p>
+      <ul class="entry-highlights">
+        <li>Seguimiento de hasta dos jugadores.</li>
+        <li>Marcador personalizable y avisos con animación y sonido.</li>
+        <li>Equipos Pokémon e historial de rondas desde el panel.</li>
+        <li>Fuente privada de pruebas para preparar la escena de OBS.</li>
+      </ul>
+    </section>
+    <section class="entry-access" aria-labelledby="access-title">
+      <h2 id="access-title">Acceso al panel</h2>
+      <form id="login">
+        <label for="code">Código de invitación</label>
+        <input id="code" name="code" type="password" autocomplete="current-password" minlength="32" maxlength="256" required>
+        <div class="inline login-actions"><button type="submit" class="primary">Abrir panel</button></div>
+        <p id="login-error" role="status"></p>
+      </form>
+      <p class="muted details-copy">Proyecto independiente. El panel usa un código privado y las fuentes de OBS tienen enlaces de solo lectura.</p>
+    </section>
   </main>
 </body>
 </html>

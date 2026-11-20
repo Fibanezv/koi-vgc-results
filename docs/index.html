@@ -10,19 +10,29 @@
 </head>
 <body>
   <main class="sign-in">
-    <header>
+    <section class="entry-info" aria-labelledby="entry-title">
       <div class="brand">
-        <img src="koi-logo.jpg" width="44" height="44" alt="">
-        <h1>KOI Pokémon VGC Results</h1>
+        <img class="entry-logo" src="koi-logo.jpg" width="60" height="60" alt="">
+        <h1 id="entry-title">KOI Pokémon<br>VGC Results</h1>
       </div>
-    </header>
-    <div class="login">
-      <label for="code">Código de invitación</label>
-      <input id="code" type="password" aria-describedby="access-status" disabled>
-      <button type="button" disabled>Abrir panel</button>
-      <p id="access-status">El acceso estará disponible cuando se publique el servidor.</p>
-    </div>
-    <p class="details">Proyecto independiente.</p>
+      <p>Sigue a tus jugadores de Pokémon VGC durante el torneo. El panel consulta PokéData y lleva los cruces y resultados a tu retransmisión en OBS.</p>
+      <ul class="entry-highlights">
+        <li>Seguimiento de hasta dos jugadores.</li>
+        <li>Marcador personalizable y avisos con animación y sonido.</li>
+        <li>Equipos Pokémon e historial de rondas desde el panel.</li>
+        <li>Fuente privada de pruebas para preparar la escena de OBS.</li>
+      </ul>
+    </section>
+    <section class="entry-access" aria-labelledby="access-title">
+      <h2 id="access-title">Acceso al panel</h2>
+      <div class="login">
+        <label for="code">Código de invitación</label>
+        <input id="code" type="password" aria-describedby="access-status" disabled>
+        <button type="button" disabled>Abrir panel</button>
+        <p id="access-status">El acceso estará disponible cuando se publique el servidor.</p>
+      </div>
+      <p class="details">Proyecto independiente.</p>
+    </section>
   </main>
 </body>
 </html>
