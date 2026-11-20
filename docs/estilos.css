@@ -30,7 +30,7 @@ body {
   border-radius: 16px;
   background: var(--base);
 }
-.entry-info, .entry-access { min-width: 0; padding: clamp(1.5rem, 5vw, 3.5rem); }
+.entry-info, .entry-access { min-width: 0; padding: clamp(1.5rem, 4vw, 3rem); }
 .entry-info { background: linear-gradient(145deg, #28204a, #1b1d38); }
 .entry-info .brand { align-items: center; gap: clamp(.65rem, 2vw, 1.15rem); }
 .entry-logo { flex: none; width: clamp(2.75rem, 6vw, 4rem); height: auto; border-radius: 9px; }
