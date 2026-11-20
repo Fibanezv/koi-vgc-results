@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>KOI Pokémon VGC Results · Overlay</title>
+  <link rel="icon" type="image/jpeg" href="/koi-logo.jpg">
+  <link rel="stylesheet" href="/overlay.css">
+  <script defer src="/overlay.js"></script>
+</head>
+<body>
+  <main aria-label="Marcador de Pokémon VGC">
+    <div id="message" role="status" hidden></div>
+    <div id="linked-trial-actions" hidden><button id="replay-linked-trial" type="button">Repetir prueba</button><button id="stop-linked-trial" type="button">Parar prueba</button></div>
+    <div id="alert-anchor" class="anchor">
+      <aside id="notice" aria-live="polite" hidden>
+        <img id="notice-gif" alt="" hidden>
+        <div id="notice-copy"></div>
+        <span id="notice-effect" class="overlay-effect" aria-hidden="true"></span>
+      </aside>
+    </div>
+    <div id="score-anchor" class="anchor">
+      <section id="scoreboard" aria-label="Resultados de los jugadores" hidden>
+        <div class="context" id="score-context"><span id="tournament-title"></span><span id="simulation" hidden>SIMULACIÓN</span></div>
+        <div id="score-brand" class="score-brand"><span class="score-logo" role="img" aria-label="KOI"></span></div>
+        <div id="players"></div>
+        <section id="score-menu" aria-labelledby="score-menu-title" hidden>
+          <h2 id="score-menu-title"></h2>
+          <div id="score-menu-content"></div>
+        </section>
+        <span id="score-effect-layer" class="overlay-effect" aria-hidden="true"></span>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

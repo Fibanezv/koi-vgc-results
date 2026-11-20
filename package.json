@@ -1,0 +1,24 @@
+{
+  "name": "koi-vgc-results",
+  "productName": "KOI Pokémon VGC Results",
+  "version": "0.1.0",
+  "description": "Seguimiento de resultados de Pokémon VGC para OBS Studio",
+  "author": "KOI Pokémon VGC Results",
+  "private": true,
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "tsc --noEmit && esbuild src/main.ts --bundle --outfile=build/main.js --platform=node --packages=external && esbuild src/panel.ts src/overlay.ts --bundle --outdir=build --platform=browser",
+    "start": "node --env-file-if-exists=.env build/main.js",
+    "dev": "npm run build && npm start",
+    "test": "esbuild tests/service.test.ts --bundle --outfile=build/service.test.cjs --platform=node --packages=external && node --disable-warning=ExperimentalWarning --test build/service.test.cjs"
+  },
+  "dependencies": {
+    "express": "5.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "24.19.2",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
+  }
+}

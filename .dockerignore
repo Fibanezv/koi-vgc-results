@@ -1,0 +1,15 @@
+.git
+.github
+.qa
+.env
+.env.*
+.npm-cache
+.electron-cache
+node_modules
+build
+data
+out
+herramientas
+**/*.sqlite
+**/*.sqlite-*
+**/*.log

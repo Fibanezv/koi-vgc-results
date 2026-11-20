@@ -1,0 +1,16 @@
+node_modules/
+build/
+out/
+.npm-cache/
+.electron-cache/
+.qa/
+.env
+.env.*
+!.env.example
+data/
+*.sqlite
+*.sqlite-*
+*.db-wal
+*.db-shm
+*.log
+/herramientas/descargar-sprites-home/descargas/
