@@ -239,6 +239,19 @@
               <div><label for="alert-layout">Formato del aviso</label><select id="alert-layout"><option value="horizontal">Horizontal · GIF a la izquierda</option><option value="card">Tarjeta · GIF encima del resultado</option><option value="banner">Panorámico · GIF de fondo</option></select></div>
               <div><label for="alert-size">Tamaño del aviso (%)</label><input id="alert-size" type="number" min="60" max="150" required></div>
             </div>
+            <label for="alert-content">Contenido del aviso</label>
+            <select id="alert-content"><option value="gif">GIF y datos</option><option value="data">Solo datos</option></select>
+            <div class="notice-data" role="group" aria-labelledby="alert-types-heading">
+              <h3 id="alert-types-heading">Tipos de aviso en directo</h3>
+              <div class="toggles">
+                <label class="check"><input type="checkbox" id="alert-type-win" checked> Victoria</label>
+                <label class="check"><input type="checkbox" id="alert-type-loss" checked> Derrota</label>
+                <label class="check"><input type="checkbox" id="alert-type-tie" checked> Empate</label>
+                <label class="check"><input type="checkbox" id="alert-type-bye" checked> Pase libre</label>
+                <label class="check"><input type="checkbox" id="alert-type-pairing" checked> Nuevo cruce</label>
+                <label class="check"><input type="checkbox" id="alert-type-correction" checked> Corrección</label>
+              </div>
+            </div>
             <div class="notice-data" role="group" aria-labelledby="notice-data-heading">
               <h3 id="notice-data-heading">Datos de los avisos</h3>
               <div class="toggles">
@@ -306,7 +319,7 @@
         <ol class="guide-steps">
           <li><h3>Prepara el torneo y la escena</h3><p>Guarda los jugadores en <a href="#dashboard/configuracion">Dashboard → Configuración</a> y añade la fuente de navegador siguiendo los pasos de <a href="#guia/obs">OBS</a>.</p></li>
           <li><h3>Coloca los elementos del overlay</h3><p>En <a href="#diseno/general">Diseño → General</a>, elige una posición base y afina el desplazamiento con el mapa. En <strong>Personalización general</strong>, ajusta los márgenes del lienzo, la opacidad de cada elemento y el color de acento. Aquí también puedes asignar alias y ocultar el marcador durante un aviso.</p></li>
-          <li><h3>Personaliza el marcador y los avisos</h3><p>En <a href="#diseno/marcador">Marcador</a>, elige los elementos visibles y configura sus transiciones de entrada y salida. En <a href="#diseno/avisos">Avisos</a>, ajusta el formato, los datos visibles y los tiempos de cada aviso. Pulsa <strong>Aplicar al overlay</strong> para llevar los cambios a OBS.</p></li>
+          <li><h3>Personaliza el marcador y los avisos</h3><p>En <a href="#diseno/marcador">Marcador</a>, elige los elementos visibles y configura sus transiciones. En <a href="#diseno/avisos">Avisos</a>, marca los tipos que quieres emitir en directo y elige <strong>Solo datos</strong> para ocultar el GIF. Puedes ensayar cualquier tipo desde Pruebas. Pulsa <strong>Aplicar al overlay</strong> para guardar.</p></li>
           <li><h3>Elige las imágenes y los sonidos</h3><p>Asigna imágenes en <a href="#sprites/jugadores">Jugadores</a> y comprueba el menú o el marcador en <a href="#sprites/equipos">Equipos Pokémon</a>. En <a href="#sprites/gifs">GIFs de avisos</a> y <a href="#sonidos/avisos">Sonidos → Avisos</a>, pulsa el nombre de un archivo o tono para probarlo. Marca los que quieras alternar y guarda cada pestaña. En <a href="#sonidos/marcador">Marcador</a> asigna sonidos a la apertura y el cierre del equipo y el historial.</p></li>
           <li><h3>Ajusta la mezcla</h3><p>En <a href="#sonidos/general">Sonidos → General</a>, fija el volumen general y regula o silencia por separado los avisos y los menús. Con un volumen general del 60 % y un nivel de avisos del 50 %, los avisos quedan al 30 %.</p></li>
           <li><h3>Ensaya y sal al aire</h3><p>Comprueba avisos y menús desde el <a href="#dashboard/seguimiento">Dashboard</a>. Para probar la fuente y el audio en OBS, consulta <a href="#guia/pruebas">Pruebas</a>. Cuando esté listo, pulsa <strong>Iniciar seguimiento</strong>.</p></li>

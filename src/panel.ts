@@ -532,6 +532,8 @@ function bindPanel() {
       }
       select('entrance').value = visual.entrance;
       select('alert-style').value = visual.alertStyle;
+      select('alert-content').value = visual.alertContent;
+      for (const type of noticeTypes) input(`alert-type-${type}`).checked = visual.alertTypes.includes(type);
       select('alert-layout').value = visual.alertLayout;
       select('alert-exit').value = visual.alertExit;
       select('alert-effect').value = visual.alertEffect;
@@ -1197,6 +1199,8 @@ function bindPanel() {
       entrance: select('entrance').value as Appearance['entrance'],
       alertStyle: select('alert-style').value as Appearance['alertStyle'],
       alertLayout: select('alert-layout').value as Appearance['alertLayout'],
+      alertContent: select('alert-content').value as Appearance['alertContent'],
+      alertTypes: noticeTypes.filter(type => input(`alert-type-${type}`).checked),
       alertExit: select('alert-exit').value as Appearance['alertExit'],
       alertEffect: select('alert-effect').value as Appearance['alertEffect'],
       entranceMs: input('entrance-ms').valueAsNumber, exitMs: input('exit-ms').valueAsNumber,

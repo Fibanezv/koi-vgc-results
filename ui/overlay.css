@@ -152,7 +152,7 @@ body { margin: 0; background: transparent; color: var(--fg); }
 [data-layout=card] #notice-gif { height: auto; aspect-ratio: 16 / 10; max-height: min(42vh, 13em); }
 #notice:is([data-layout=card], [data-layout=banner]) #notice-copy { text-align: center; }
 #notice:is([data-layout=card], [data-layout=banner]) :is(.notice-label, .notice-details) { justify-content: center; }
-#notice[data-layout=banner]:has(#notice-gif:not([hidden])) { min-height: min(26vh, 8em); }
+#notice[data-layout=banner]:is([data-content=data], :has(#notice-gif:not([hidden]))) { min-height: min(26vh, 8em); }
 [data-layout=banner] #notice-gif { position: absolute; inset: 0; object-position: center top; }
 [data-layout=banner]:has(#notice-gif:not([hidden]):not([data-loading])) #notice-copy { text-shadow: 0 1px 5px #0a0611; }
 #notice[data-layout=banner]:has(#notice-gif:not([hidden]):not([data-loading]))::before { content: ''; position: absolute; z-index: 1; inset: 0; background: var(--notice-veil); }

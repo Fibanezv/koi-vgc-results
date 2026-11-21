@@ -26,7 +26,7 @@ Para editar los ajustes de arranque, copia [`.env.example`](.env.example) a `.en
 
 - **Diseño → General** controla los alias, las posiciones base y los desplazamientos del marcador y los avisos. También puedes ajustar los márgenes del lienzo, la opacidad de cada elemento y el color de acento. El mapa refleja estos ajustes al editar.
 - **Diseño → Marcador** reúne estilo, tamaño, campos visibles y orden de jugadores. Configura también la entrada, la salida y los efectos que se aplican al mostrar u ocultar el marcador.
-- **Diseño → Avisos** reúne el formato horizontal, tarjeta o panorámico, los datos visibles y los tiempos de entrada, permanencia, salida y pausa.
+- **Diseño → Avisos** permite elegir qué tipos se muestran en directo, seleccionar **GIF y datos** o **Solo datos**, y ajustar el formato, los datos visibles y los tiempos de animación. **Dashboard → Pruebas** permite ensayar cualquier tipo.
 - **Aplicar al overlay** guarda todas las pestañas de Diseño y actualiza las fuentes abiertas durante el seguimiento. Desde **Seguimiento** también puedes mostrar u ocultar el marcador. Para cambiar el torneo, la división o los jugadores, pausa el seguimiento.
 - **Dashboard → Pruebas** envía el escenario elegido a la URL de ensayo aunque los avisos estén desactivados para el directo. Para comprobar el encuadre, usa una fuente con el mismo ancho y alto que el lienzo de OBS.
 

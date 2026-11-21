@@ -6,7 +6,7 @@ import { divisions, teamSlots } from './model.ts';
 import type { Config, Division, Entry, Notice, OverlayState, PanelState, Scenario, ScoreMenu, Setup, Snapshot, Tournament } from './model.ts';
 import { simulateTrial, scenarios, trialPresets } from './trials.ts';
 import type { TrialPreset } from './trials.ts';
-import { defaultAppearance, resolveAppearance, validateAppearance } from './appearance.ts';
+import { allowsLiveNotice, defaultAppearance, resolveAppearance, validateAppearance } from './appearance.ts';
 import { defaultSounds, isMenuSound, noticeTypes, soundEvents, soundFiles, soundsFor, validateSounds } from './sounds.ts';
 import type { NoticeType, SoundSettings } from './sounds.ts';
 import { tournamentFrom } from './pokedata.ts';
@@ -183,7 +183,9 @@ export function createService(options: Options) {
           : stream.overlay.round ? 'Siguiendo los resultados de PokéData.' : 'Esperando la primera ronda.' };
       const fresh = store.save(stream, notices);
       lastRead.set(owner, reading);
-      broadcast(stream.live, styled(stream), appearance(stream).alerts ? fresh : []);
+      const overlay = styled(stream);
+      const settings = overlay.appearance ?? defaultAppearance;
+      broadcast(stream.live, overlay, fresh.filter(notice => allowsLiveNotice(settings, notice)));
     } catch (error) {
       const stream = current();
       if (stream && (lastRead.get(owner) !== error || stream.status.phase !== 'error')) {

@@ -1,6 +1,6 @@
 import { simulateTrial, scenarios, trialPresets } from './trials.ts';
 import type { TrialPreset } from './trials.ts';
-import { resolveAppearance, sharesPosition } from './appearance.ts';
+import { allowsLiveNotice, resolveAppearance, sharesPosition } from './appearance.ts';
 import type { Appearance } from './appearance.ts';
 import { teamSlots } from './model.ts';
 import type { Card, Match, Notice, OverlayState, Scenario, ScoreMenu, SpritePreview } from './model.ts';
@@ -222,6 +222,7 @@ function render(next: OverlayState) {
   const board = el('scoreboard');
   noticeView.dataset.style = settings.alertStyle === 'match' ? settings.scoreboardStyle : settings.alertStyle;
   noticeView.dataset.layout = settings.alertLayout;
+  noticeView.dataset.content = settings.alertContent;
   const fields = settings.scoreboardFields;
   board.dataset.style = settings.scoreboardStyle;
   board.dataset.logo = String(fields.logo);
@@ -362,7 +363,8 @@ function writeNotice(next: Notice) {
   details.forEach(detail => metadata.append(text('span', String(detail))));
   noticeCopy.replaceChildren(label, text('strong', title), metadata);
   const files = type && state.gifs?.[type];
-  if (!type || !files?.length || (!embeddedPreview && !overlayPath) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (settings.alertContent === 'data' || !type || !files?.length || (!embeddedPreview && !overlayPath)
+      || matchMedia('(prefers-reduced-motion: reduce)').matches) {
     noticeGif.hidden = true;
     clearAsset(noticeGif);
     return;
@@ -386,13 +388,13 @@ function writeNotice(next: Notice) {
   }
 }
 
-function stopNotices() {
+function stopNotices(clearQueue = true) {
   clearTimeout(noticeTimer);
   transition?.cancel();
   effect?.cancel();
   mediaSound?.pause();
   noticeTone?.();
-  pending.length = 0;
+  if (clearQueue) pending.length = 0;
   currentNotice = undefined;
   playing = false;
   noticeView.hidden = true;
@@ -512,9 +514,16 @@ function play() {
 
 function receive(current: OverlayState, notices: Notice[]) {
   render(current);
-  if (current.appearance?.alerts === false && !current.simulation) { stopNotices(); return; }
+  const settings = resolveAppearance(current.appearance);
+  if (!current.simulation) {
+    if (!settings.alerts) { stopNotices(); return; }
+    for (let index = pending.length - 1; index >= 0; index--) {
+      if (!allowsLiveNotice(settings, pending[index])) pending.splice(index, 1);
+    }
+    if (currentNotice && !allowsLiveNotice(settings, currentNotice)) stopNotices(false);
+  }
   for (const notice of notices) {
-    if (seen.has(notice.id)) continue;
+    if (seen.has(notice.id) || (!current.simulation && !allowsLiveNotice(settings, notice))) continue;
     seen.add(notice.id);
     if (seen.size > 400) seen.delete(seen.values().next().value!);
     pending.push(notice);

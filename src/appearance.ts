@@ -1,8 +1,13 @@
+import type { Notice } from './model.ts';
+import { noticeType, noticeTypes } from './sounds.ts';
+import type { NoticeType } from './sounds.ts';
+
 export const positions = ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-center', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right'] as const;
 export const entrances = ['bottom', 'top', 'left', 'right', 'fade', 'zoom', 'reveal', 'none'] as const;
 export const scoreboardStyles = ['koi', 'retro'] as const;
 export const alertStyles = ['match', ...scoreboardStyles] as const;
 export const alertLayouts = ['horizontal', 'card', 'banner'] as const;
+export const alertContents = ['gif', 'data'] as const;
 export const alertEffects = ['none', 'glow', 'sweep'] as const;
 export const alertExits = ['match', 'fade', 'bottom', 'top', 'left', 'right', 'zoom', 'none'] as const;
 export const scoreboardFieldKeys = ['logo', 'avatar', 'pokemon', 'name', 'outcome', 'opponent', 'table', 'record', 'tournament', 'round', 'reverse'] as const;
@@ -15,6 +20,7 @@ export type ScoreboardMotion = {
 export type Appearance = {
   scoreboard: boolean;
   alerts: boolean;
+  alertTypes: NoticeType[];
   hideScoreboardDuringAlert: boolean;
   scoreboardPosition: typeof positions[number];
   alertPosition: typeof positions[number];
@@ -31,6 +37,7 @@ export type Appearance = {
   alertSize: number;
   alertStyle: typeof alertStyles[number];
   alertLayout: typeof alertLayouts[number];
+  alertContent: typeof alertContents[number];
   entrance: typeof entrances[number];
   alertExit: typeof alertExits[number];
   alertEffect: typeof alertEffects[number];
@@ -46,14 +53,14 @@ export type Appearance = {
 };
 
 export const defaultAppearance: Appearance = {
-  scoreboard: true, alerts: true, scoreboardPosition: 'bottom-left', alertPosition: 'bottom-left',
+  scoreboard: true, alerts: true, alertTypes: [...noticeTypes], scoreboardPosition: 'bottom-left', alertPosition: 'bottom-left',
   scoreboardOffset: { x: 0, y: 0 }, alertOffset: { x: 0, y: 0 },
   marginX: 3.5, marginY: 4, scoreboardOpacity: 100, alertOpacity: 100,
   hideScoreboardDuringAlert: false,
   scoreboardSize: 100, alertSize: 100, entrance: 'bottom', opponent: true, table: true, record: true,
   scoreboardStyle: 'koi',
   scoreboardMotion: { entrance: 'none', exit: 'match', effect: 'none', entranceMs: 280, exitMs: 220 },
-  alertStyle: 'match', alertLayout: 'horizontal', alertEffect: 'none', alertExit: 'match',
+  alertStyle: 'match', alertLayout: 'horizontal', alertContent: 'gif', alertEffect: 'none', alertExit: 'match',
   entranceMs: 280, exitMs: 220, alertGapMs: 180,
   scoreboardFields: { logo: true, avatar: true, pokemon: true, name: true, outcome: true,
     opponent: true, table: true, record: true, tournament: true, round: true, reverse: false },
@@ -63,6 +70,11 @@ export const defaultAppearance: Appearance = {
 export function sharesPosition(settings: Pick<Appearance, 'scoreboardPosition' | 'alertPosition' | 'scoreboardOffset' | 'alertOffset'>) {
   return settings.scoreboardPosition === settings.alertPosition
     && settings.scoreboardOffset.x === settings.alertOffset.x && settings.scoreboardOffset.y === settings.alertOffset.y;
+}
+
+export function allowsLiveNotice(settings: Appearance, notice: Notice) {
+  const type = noticeType(notice);
+  return settings.alerts && type !== undefined && settings.alertTypes.includes(type);
 }
 
 export function resolveAppearance(saved?: Partial<Appearance>): Appearance {
@@ -94,6 +106,9 @@ export function validateAppearance(value: unknown, previous: Appearance = defaul
       || (input.scoreboardStyle !== undefined && !scoreboardStyles.includes(input.scoreboardStyle))
       || (input.alertStyle !== undefined && !alertStyles.includes(input.alertStyle))
       || (input.alertLayout !== undefined && !alertLayouts.includes(input.alertLayout))
+      || (input.alertContent !== undefined && !alertContents.includes(input.alertContent))
+      || (input.alertTypes !== undefined && (!Array.isArray(input.alertTypes)
+        || !input.alertTypes.every(type => noticeTypes.includes(type))))
       || (input.alertEffect !== undefined && !alertEffects.includes(input.alertEffect))
       || (input.alertExit !== undefined && !alertExits.includes(input.alertExit))
       || (input.hideScoreboardDuringAlert !== undefined && typeof input.hideScoreboardDuringAlert !== 'boolean')
@@ -124,6 +139,8 @@ export function validateAppearance(value: unknown, previous: Appearance = defaul
     hideScoreboardDuringAlert: input.hideScoreboardDuringAlert ?? previous.hideScoreboardDuringAlert,
     alertStyle: input.alertStyle ?? previous.alertStyle,
     alertLayout: input.alertLayout ?? previous.alertLayout,
+    alertContent: input.alertContent ?? previous.alertContent,
+    alertTypes: input.alertTypes === undefined ? previous.alertTypes : noticeTypes.filter(type => input.alertTypes.includes(type)),
     alertEffect: input.alertEffect ?? previous.alertEffect,
     alertExit: input.alertExit ?? previous.alertExit,
     entranceMs: input.entranceMs ?? previous.entranceMs,

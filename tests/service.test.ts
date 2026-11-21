@@ -223,12 +223,14 @@ test('panel privado, consultas compartidas, SSE aislado y revocación persistent
       scoreboardOffset: { x: -2.5, y: 1 }, alertOffset: { x: 5.3, y: -6 },
       marginX: 6.4, marginY: 8, scoreboardOpacity: 85, alertOpacity: 70,
       scoreboardMotion: { entrance: 'zoom', exit: 'left', effect: 'sweep', entranceMs: 320, exitMs: 250 },
-      alertStyle: 'koi', alertLayout: 'banner', alertEffect: 'sweep', alertExit: 'zoom',
+      alertStyle: 'koi', alertLayout: 'banner', alertContent: 'data', alertTypes: ['loss'], alertEffect: 'sweep', alertExit: 'zoom',
       entranceMs: 450, exitMs: 350, alertGapMs: 0,
       scoreboardStyle: 'retro', scoreboardFields: { ...defaultAppearance.scoreboardFields, name: false, reverse: true } };
     assert.equal((await post('/api/panel/appearance', { appearance: { ...appearance, alertSize: 500 } }, session)).status, 400);
     assert.equal((await post('/api/panel/appearance', { appearance: { ...appearance, scoreboardStyle: 'invalid' } }, session)).status, 400);
     assert.equal((await post('/api/panel/appearance', { appearance: { ...appearance, alertLayout: 'invalid' } }, session)).status, 400);
+    assert.equal((await post('/api/panel/appearance', { appearance: { ...appearance, alertContent: 'invalid' } }, session)).status, 400);
+    assert.equal((await post('/api/panel/appearance', { appearance: { ...appearance, alertTypes: ['invalid'] } }, session)).status, 400);
     assert.equal((await post('/api/panel/appearance', { appearance: { ...appearance, entranceMs: 99 } }, session)).status, 400);
     assert.equal((await post('/api/panel/appearance', { appearance: { ...appearance, alertOffset: { x: 51, y: 0 } } }, session)).status, 400);
     assert.equal((await post('/api/panel/appearance', { appearance: { ...appearance, alertOpacity: 29 } }, session)).status, 400);
@@ -251,6 +253,8 @@ test('panel privado, consultas compartidas, SSE aislado y revocación persistent
     assert.equal(edited.overlay.appearance.scoreboardStyle, 'retro');
     assert.equal(edited.overlay.appearance.scoreboardFields.name, false);
     assert.equal(edited.overlay.appearance.hideScoreboardDuringAlert, true);
+    assert.deepEqual(edited.overlay.appearance.alertTypes, ['loss']);
+    assert.equal(edited.overlay.appearance.alertContent, 'data');
     for (const key of ['alertStyle', 'alertLayout', 'alertEffect', 'alertExit', 'entranceMs', 'exitMs', 'alertGapMs'] as const) {
       assert.equal(edited.overlay.appearance[key], appearance[key]);
     }
@@ -396,13 +400,14 @@ test('panel privado, consultas compartidas, SSE aislado y revocación persistent
     await post('/api/panel/demo', { scenario: 'win' }, session);
     assert.match((await styledPreview.read()).value!, /"names":\["Álex TV"\]/);
     await styledPreview.cancel();
+    const reenabled = await post('/api/panel/appearance', { appearance: { ...appearance, alerts: true } }, session);
+    assert.equal(reenabled.status, 200);
     result = 1;
     let muted = '';
     while (!muted.includes('"outcome":"tie"')) muted = (await liveEdit.read()).value!;
+    assert.match(muted, /"alerts":true/);
     assert.match(muted, /"notices":\[\]/);
     await liveEdit.cancel();
-    const reenabled = await post('/api/panel/appearance', { appearance: { ...appearance, alerts: true } }, session);
-    assert.equal(reenabled.status, 200);
     fail = true;
     await until(async () => (await (await get('/api/panel', session)).json()).status.phase === 'error');
     const stale = await (await get(main.url + '/state')).json();
@@ -436,6 +441,8 @@ test('panel privado, consultas compartidas, SSE aislado y revocación persistent
     assert.equal(persisted.appearance.alertSize, 130);
     assert.equal(persisted.appearance.scoreboardStyle, 'retro');
     assert.equal(persisted.appearance.alertLayout, 'banner');
+    assert.equal(persisted.appearance.alertContent, 'data');
+    assert.deepEqual(persisted.appearance.alertTypes, ['loss']);
     assert.deepEqual(persisted.appearance.alertOffset, appearance.alertOffset);
     assert.equal(persisted.appearance.scoreboardOpacity, 85);
     assert.equal(persisted.appearance.marginY, 8);
