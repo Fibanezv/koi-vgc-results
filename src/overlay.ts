@@ -41,6 +41,19 @@ let rowsVersion = '';
 let menuVersion = '';
 let historyRequest: AbortController | undefined;
 const scoreMenu = el('score-menu');
+const scoreboard = el('scoreboard');
+const historySize = new ResizeObserver(() => {
+  if (scoreMenu.hidden || !scoreMenu.querySelector('table')) return;
+  const anchor = el('score-anchor');
+  const noticeSpace = noticeView.parentElement === anchor && !noticeView.hidden
+    ? noticeView.offsetHeight + (parseFloat(getComputedStyle(anchor).rowGap) || 0) : 0;
+  const available = Math.max(1, anchor.clientHeight - noticeSpace);
+  const zoom = String(Math.min(1, available / Math.max(1, scoreboard.offsetHeight)));
+  if (zoom !== scoreboard.style.getPropertyValue('--history-zoom')) {
+    scoreboard.style.setProperty('--history-zoom', zoom);
+  }
+});
+for (const element of [scoreboard, el('score-anchor'), noticeView]) historySize.observe(element);
 let overlayPath = location.pathname.startsWith('/o/') ? location.pathname.replace(/\/$/, '') : '';
 let previewPlayers: SpritePreview['players'] | undefined;
 const previewParams = new URLSearchParams(location.search);
